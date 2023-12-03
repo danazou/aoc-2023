@@ -1,19 +1,21 @@
 #!/usr/bin/env node
 
+// imports readfile function
 const fs = require("fs");
 let sum = 0;
-let numToString = {
-  one: "1",
-  two: "2",
-  three: "3",
-  four: "4",
-  five: "5",
-  six: "6",
-  seven: "7",
-  eight: "8",
-  nine: "9",
-};
+let numToString = [
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+];
 
+// read file
 fs.readFile("input.txt", "utf8", (err, data) => {
   if (err) {
     console.error("Error reading file", err);
@@ -22,21 +24,22 @@ fs.readFile("input.txt", "utf8", (err, data) => {
 
   input = data.split("\n");
 
-  //iterate over each input line
-  for (let i = 0; i < input.length; i++) {
-    let s = input[i];
+  // iterate over each input line
+  for (let s of input) {
     let nums = [];
-    for (let j = 0; j < s.length; j++) {
-      let current = s.substring(j);
-      //if first character is digit
-      let firstChar = current.charAt(0);
+    for (let i = 0; i < s.length; i++) {
+      // create substring
+      let current = s.substring(i);
+
+      // if first character is digit
+      let firstChar = current[0];
       if (firstChar.match(/[0-9]/) != null) {
         nums.push(firstChar);
       } else {
-        //to see if the stirng contains a digit in string
-        for (const num in numToString) {
-          if (current.startsWith(num)) {
-            nums.push(numToString[num]);
+        // e.g. current starts with 'two'
+        for (const [index, number] of numToString.entries()) {
+          if (current.startsWith(number)) {
+            nums.push(String(index + 1));
             break;
           }
         }
@@ -46,13 +49,13 @@ fs.readFile("input.txt", "utf8", (err, data) => {
   }
 
   console.log(sum);
+  // Expected output: 55249
 });
 
 /*
-whilst string is not empty,
-    1. check if string starts with one of 9 numbers
+for each substring,
+    1. check if first letter is a digit
     2. if it is, add to array of nums
-    2. if it doesn't, remove first letter
-    3. check if letter is a digit
+    3. otherwise, check if string starts with one of 9 numbers
     4. if it is, add to array of nums
 */

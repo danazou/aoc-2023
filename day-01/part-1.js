@@ -12,7 +12,6 @@ fs.readFile("input.txt", "utf8", (err, data) => {
   }
 
   input = data.split("\n");
-  // console.log("input is:", input);
 
   for (let i = 0; i < input.length; i++) {
     let nums = input[i].match(/[0-9]/g);
@@ -21,4 +20,5 @@ fs.readFile("input.txt", "utf8", (err, data) => {
   }
 
   console.log(sum);
+  // Expected output: 54605
 });
