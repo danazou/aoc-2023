@@ -1,5 +1,4 @@
 const fs = require("fs");
-const { start } = require("repl");
 let sum = 0;
 const regEx = /[0-9]+/dg;
 
