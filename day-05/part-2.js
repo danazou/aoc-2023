@@ -1,5 +1,8 @@
 const fs = require("fs");
 let locations = [];
+let current = [];
+let next = [];
+let mapped = [];
 
 fs.readFile("input.txt", "utf-8", (err, data) => {
   if (err) {
@@ -17,8 +20,6 @@ fs.readFile("input.txt", "utf-8", (err, data) => {
     }
   });
 
-  console.log(seeds);
-
   let maps = [];
 
   for (let i = 1; i < input.length; i++) {
@@ -31,40 +32,69 @@ fs.readFile("input.txt", "utf-8", (err, data) => {
   }
 
   for (const seed of seeds) {
-    const start = seed[0];
-    const end = seed[0] + seed[1];
+    // start and end of interval
+    current = [[seed[0], seed[0] + seed[1] - 1]];
 
-    // loop from start to end
-    for (let i = start; i < end; i++) {
-      let target = i;
-      for (const map of maps) {
-        for (const line of map) {
-          const source = line[1];
-          const destination = line[0];
-          const range = line[2];
+    for (const map of maps) {
+      for (const line of map) {
+        // map: destination source range
+        const mapStart = line[1];
+        const mapEnd = mapStart + line[2] - 1;
+        const destination = line[0];
+        const mapping = destination - mapStart;
 
-          if (source <= target && target <= source + range - 1) {
-            target = destination + (target - source);
-            break;
+        while (current.length > 0) {
+          // look at last interval and remove from current
+          const currentInterval = current.pop();
+          const start = currentInterval[0];
+          const end = currentInterval[1];
+
+          // find overlap
+          const l = Math.max(start, mapStart);
+          const r = Math.min(end, mapEnd);
+
+          if (l <= r) {
+            // overlap moves on to next map
+            const overlap = [mapping + l, mapping + r];
+            mapped.push(overlap);
+
+            // non overlap moves to next line
+            const left = [start, l - 1];
+            const right = [r + 1, end];
+
+            if (left[0] < left[1]) {
+              next.push(left);
+            } else if (right[0] < right[1]) {
+              next.push(right);
+            }
+          } else {
+            // no overlap
+            next.push(currentInterval);
           }
         }
+        // update current
+        if (next.length != 0) {
+          current = next.slice(); // deep copy of arrays
+          next = [];
+        }
       }
-      locations.push(target);
+      // unmapped intervals
+      if (current.length != 0) {
+        mapped.push(...current); // pushing each item of current!
+      }
+
+      // update current
+      if (mapped.length != 0) {
+        current = mapped.slice();
+        mapped = [];
+      }
     }
+
+    // reached end of maps -> location
+    locations.push(...current);
   }
-  console.log(Math.min(...locations));
-  // expected output: 214922730
+
+  const lowest = Math.min(...locations.flat());
+  console.log(lowest);
+  // expected output: 148041808
 });
-
-/*
-seed: [start, range]
-
-interval [start, end]
-find overlap between interval and source interval
-  max (start, source start) = l
-  min (end, source end) = r
-  l<r
-an interval will move on to next mapping
-an interval may stay to check next line
-
-*/
