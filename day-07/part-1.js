@@ -1,10 +1,17 @@
 const fs = require("fs");
-let hands = { 5: [], 4: [], 1: [], "3+2": [], 3: [], "2+2": [], 2: [] };
+let hands = [[], [], [], [], [], [], []]; // ordered lowest to highest
 let bids = new Object();
 const ranks = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
-const types = { 5: 0, 4: 1, "3+2": 2, 3: 3, "2+2": 4, 2: 5, 1: 6 };
-let orderedHands = [[], [], [], [], [], [], []];
 let winnings = 0;
+let patterns = [
+  [1, 1, 1, 1, 1],
+  [2, 1, 1, 1],
+  [2, 2, 1],
+  [3, 1, 1],
+  [3, 2],
+  [4, 1],
+  [5],
+];
 
 fs.readFile("input.txt", "utf-8", (err, data) => {
   if (err) {
@@ -16,7 +23,7 @@ fs.readFile("input.txt", "utf-8", (err, data) => {
     const hand = line.split(" ")[0];
     const bid = line.split(" ")[1];
     bids[hand] = bid;
-    // console.log(bids);
+
     let repeats = new Object();
     for (card of hand) {
       if (card in repeats) {
@@ -27,46 +34,28 @@ fs.readFile("input.txt", "utf-8", (err, data) => {
     }
 
     const counts = Object.values(repeats).toSorted((a, b) => b - a);
-    const max = counts[0];
     // determine type of hand
-    if ([5, 4, 1].includes(max)) {
-      hands[max].push(hand);
-    } else if (max == 3) {
-      if (counts[1] == 2) {
-        hands["3+2"].push(hand);
-      } else {
-        hands[max].push(hand);
-      }
-    } else if (max == 2) {
-      if (counts[1] == 2) {
-        hands["2+2"].push(hand);
-      } else {
-        hands[max].push(hand);
-      }
-    }
+    // leon's solution: match counts to patterns
+    let index = patterns.findIndex((x) => x.toString() == counts.toString());
+    // when checking if array x exists in nested array, javascript looks at if nested array elements are stored in same place as array x
+    hands[index].push(hand);
   }
 
-  for (const [type, values] of Object.entries(hands)) {
-    // console.log(type);
-
-    values.sort(function (a, b) {
+  for (const hand of hands) {
+    hand.sort(function (a, b) {
+      // order from lowest to highest
       for (let i = 0; i < 5; i++) {
         if (a[i] != b[i]) {
-          return ranks.indexOf(a[i]) - ranks.indexOf(b[i]);
+          return ranks.indexOf(b[i]) - ranks.indexOf(a[i]);
         }
       }
     });
-    orderedHands[types[type]].push(...values);
-    // console.log(values);
   }
-  const flatHands = orderedHands.flat();
 
-  for (const [index, hand] of flatHands.entries()) {
-    // console.log(bids[hand]);
-    //(765 * 1 + 220 * 2 + 28 * 3 + 684 * 4 + 483 * 5)
-    winnings += (flatHands.length - index) * bids[hand];
-    // console.log(flatHands.length - index, bids[hand]);
+  for (const [index, hand] of hands.flat().entries()) {
+    winnings += (index + 1) * bids[hand];
   }
 
   console.log(winnings);
+  // expected output: 248179786
 });
